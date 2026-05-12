@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 數位影像工作坊 - 專業旗艦版</title>
+    <style>
+        /* 1. CSS 變數與基礎設定 */
+        :root {
+            --bg-body: #121212;
+            --bg-panel: #1e1e1e;
+            --bg-canvas-area: #0a0a0a;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --danger-color: #ef4444;
+            --text-main: #f3f4f6;
+            --text-dim: #9ca3af;
+            --border-color: #374151;
+            --radius: 12px;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* 控制面板 */
+        .sidebar {
+            width: 360px;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        /* 畫布區域 */
+        .viewport {
+            flex: 1;
+            background-color: var(--bg-canvas-area);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+            overflow: auto;
+        }
+
+        h1 {
+            font-size: 1.15rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent-color);
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            display: block;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+        }
+
+        .control-group {
+            margin-bottom: 24px;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .upload-btn {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 10px;
+            border-radius: var(--radius);
+            text-align: center;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .btn {
+            background-color: #2d2d2d;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+
+        .btn:hover { background-color: #3d3d3d; }
+        .btn-primary { background-color: var(--accent-color); border: none; }
+        .btn-danger { color: var(--danger-color); border-color: var(--danger-color); }
+        .btn-danger:hover { background-color: rgba(239, 68, 68, 0.1); }
+
+        input[type="file"] { display: none; }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #2d2d2d;
+            padding: 10px 14px;
+            border-radius: var(--radius);
+            margin-bottom: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .slider-box {
+            background: #2d2d2d;
+            padding: 12px;
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        input[type="range"] { width: 100%; accent-color: var(--accent-color); }
+
+        /* 文字浮水印輸入 */
+        .watermark-input-group {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+        .text-input {
+            flex: 1;
+            background: #0a0a0a;
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 8px;
+            border-radius: var(--radius);
+        }
+
+        #mainCanvas {
+            max-width: 100%;
+            max-height: 100%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            background-color: #1a1a1a;
+            cursor: crosshair;
+        }
+
+        .placeholder-text { color: var(--text-dim); text-align: center; }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 5px;
+            background: #2d2d2d;
+            padding: 5px;
+            border-radius: var(--radius);
+        }
+
+        .radio-item {
+            font-size: 0.75rem;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: calc(var(--radius) - 4px);
+            transition: 0.2s;
+        }
+
+        .radio-item.active { background: var(--accent-color); color: white; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <h1><span>🚀</span> AI 影像旗艦版</h1>
+
+        <div class="control-group">
+            <span class="section-title">檔案與管理</span>
+            <label for="imageLoader" class="upload-btn">上傳圖片</label>
+            <input type="file" id="imageLoader">
+            <div class="btn-grid">
+                <button id="undoBtn" class="btn">↩️ 復原 (Undo)</button>
+                <button id="resetBtn" class="btn btn-danger">🧹 智慧重置</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="section-title">構圖調整</span>
+            <div class="btn-grid">
+                <button id="rotateBtn" class="btn">🔄 旋轉 90°</button>
+                <button id="flipBtn" class="btn">↔️ 水平翻轉</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="section-title">色彩濾鏡</span>
+            <label class="filter-option"><span>黑白 (Grayscale)</span><input type="checkbox" id="grayscaleToggle"></label>
+            <label class="filter-option"><span>負片 (Invert)</span><input type="checkbox" id="invertToggle"></label>
+            <label class="filter-option"><span>復古 (Sepia)</span><input type="checkbox" id="sepiaToggle"></label>
+        </div>
+
+        <div class="control-group">
+            <span class="section-title">文字浮水印</span>
+            <div class="watermark-input-group">
+                <input type="text" id="watermarkText" class="text-input" placeholder="輸入文字...">
+                <button id="placeWatermarkBtn" class="btn btn-primary">放置</button>
+            </div>
+            <div class="slider-box" style="background: #1a1a1a; margin-top: 5px; margin-bottom: 5px;">
+                <div class="slider-header">
+                    <span>字體大小</span>
+                    <span id="wmSizeVal">40px</span>
+                </div>
+                <input type="range" id="wmSizeSlider" min="10" max="200" value="40">
+            </div>
+            <div class="slider-box" style="background: #1a1a1a;">
+                <div class="slider-header">
+                    <span>透明度</span>
+                    <span id="wmOpacityVal">0.8</span>
+                </div>
+                <input type="range" id="wmOpacitySlider" min="0.1" max="1.0" step="0.1" value="0.8">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="section-title">卷積特效</span>
+            <div class="radio-group">
+                <div class="radio-item active" data-mode="none">原圖</div>
+                <div class="radio-item" data-mode="sharpen">銳化</div>
+                <div class="radio-item" data-mode="emboss">浮雕</div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="section-title">細節調整</span>
+            <div class="slider-box">
+                <div class="slider-header"><span>亮度 (Brightness)</span><span id="brightnessVal">100%</span></div>
+                <input type="range" id="brightnessSlider" min="0" max="200" value="100">
+            </div>
+            <div class="slider-box">
+                <div class="slider-header"><span>模糊 (Blur)</span><span id="blurVal">0px</span></div>
+                <input type="range" id="blurSlider" min="0" max="20" value="0">
+            </div>
+            <div class="slider-box">
+                <div class="slider-header"><span>冷暖色調</span><span id="tempVal">0</span></div>
+                <input type="range" id="tempSlider" min="-100" max="100" value="0">
+            </div>
+        </div>
+
+        <div style="margin-top: auto; padding-bottom: 20px;">
+            <button id="downloadBtn" class="download-btn" style="width:100%; background:white; color:black; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:bold;">匯出 PNG 圖片</button>
+        </div>
+    </aside>
+
+    <main class="viewport">
+        <canvas id="mainCanvas"></canvas>
+        <div id="placeholder" class="placeholder-text">
+            <p>請上傳圖片以開啟工作坊</p>
+        </div>
+    </main>
+</div>
+
+<script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const imageLoader = document.getElementById('imageLoader');
+    const placeholder = document.getElementById('placeholder');
+    
+    // UI 控制項
+    const grayscaleToggle = document.getElementById('grayscaleToggle');
+    const invertToggle = document.getElementById('invertToggle');
+    const sepiaToggle = document.getElementById('sepiaToggle');
+    const brightnessSlider = document.getElementById('brightnessSlider');
+    const blurSlider = document.getElementById('blurSlider');
+    const tempSlider = document.getElementById('tempSlider');
+    const radioItems = document.querySelectorAll('.radio-item');
+    const rotateBtn = document.getElementById('rotateBtn');
+    const flipBtn = document.getElementById('flipBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const undoBtn = document.getElementById('undoBtn');
+    const watermarkText = document.getElementById('watermarkText');
+    const wmSizeSlider = document.getElementById('wmSizeSlider');
+    const wmSizeVal = document.getElementById('wmSizeVal');
+    const wmOpacitySlider = document.getElementById('wmOpacitySlider');
+    const wmOpacityVal = document.getElementById('wmOpacityVal');
+    const placeWatermarkBtn = document.getElementById('placeWatermarkBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    // 狀態管理
+    let originalImg = new Image();
+    let isImageLoaded = false;
+    let currentConvolution = 'none';
+    let rotation = 0; 
+    let flipH = 1;    
+    let watermarks = []; // {text, x, y, size, opacity, color}
+    let history = []; 
+    let isPlacingWatermark = false;
+    let mousePos = { x: 0, y: 0 };
+    let isMouseOnCanvas = false;
+
+    // 1. 圖片上傳
+    imageLoader.addEventListener('change', (e) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            originalImg.onload = () => {
+                isImageLoaded = true;
+                placeholder.style.display = 'none';
+                resetStates();
+                autoResizeCanvas();
+                render();
+                saveToHistory();
+            }
+            originalImg.src = event.target.result;
+        }
+        if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
+    });
+
+    function resetStates() {
+        rotation = 0;
+        flipH = 1;
+        currentConvolution = 'none';
+        watermarks = [];
+        grayscaleToggle.checked = false;
+        invertToggle.checked = false;
+        sepiaToggle.checked = false;
+        brightnessSlider.value = 100;
+        blurSlider.value = 0;
+        tempSlider.value = 0;
+        wmSizeSlider.value = 40;
+        wmOpacitySlider.value = 0.8;
+        history = [];
+        radioItems.forEach(i => {
+            i.classList.remove('active');
+            if(i.dataset.mode === 'none') i.classList.add('active');
+        });
+    }
+
+    function autoResizeCanvas() {
+        if (rotation === 90 || rotation === 270) {
+            canvas.width = originalImg.height;
+            canvas.height = originalImg.width;
+        } else {
+            canvas.width = originalImg.width;
+            canvas.height = originalImg.height;
+        }
+    }
+
+    // 2. 卷積運算
+    function applyConvolution(pixels, weights) {
+        const side = Math.round(Math.sqrt(weights.length));
+        const halfSide = Math.floor(side / 2);
+        const src = pixels.data;
+        const sw = pixels.width;
+        const sh = pixels.height;
+        const output = ctx.createImageData(sw, sh);
+        const dst = output.data;
+
+        for (let y = 0; y < sh; y++) {
+            for (let x = 0; x < sw; x++) {
+                const dstOff = (y * sw + x) * 4;
+                let r = 0, g = 0, b = 0;
+                for (let cy = 0; cy < side; cy++) {
+                    for (let cx = 0; cx < side; cx++) {
+                        const scy = Math.min(sh - 1, Math.max(0, y + cy - halfSide));
+                        const scx = Math.min(sw - 1, Math.max(0, x + cx - halfSide));
+                        const srcOff = (scy * sw + scx) * 4;
+                        const wt = weights[cy * side + cx];
+                        r += src[srcOff] * wt;
+                        g += src[srcOff + 1] * wt;
+                        b += src[srcOff + 2] * wt;
+                    }
+                }
+                dst[dstOff] = r; dst[dstOff+1] = g; dst[dstOff+2] = b; dst[dstOff+3] = src[dstOff+3];
+            }
+        }
+        return output;
+    }
+
+    // 3. 核心渲染系統
+    function render() {
+        if (!isImageLoaded) return;
+
+        // 更新 UI 數值
+        document.getElementById('brightnessVal').innerText = brightnessSlider.value + '%';
+        document.getElementById('blurVal').innerText = blurSlider.value + 'px';
+        document.getElementById('tempVal').innerText = tempSlider.value;
+        wmSizeVal.innerText = wmSizeSlider.value + 'px';
+        wmOpacityVal.innerText = wmOpacitySlider.value;
+
+        // Step A: 畫布基礎處理 (旋轉、翻轉、濾鏡)
+        ctx.save();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.translate(canvas.width/2, canvas.height/2);
+        ctx.rotate((rotation * Math.PI) / 180);
+        ctx.scale(flipH, 1);
+        
+        ctx.filter = `
+            grayscale(${grayscaleToggle.checked ? 100 : 0}%)
+            invert(${invertToggle.checked ? 100 : 0}%)
+            sepia(${sepiaToggle.checked ? 100 : 0}%)
+            brightness(${brightnessSlider.value}%)
+            blur(${blurSlider.value}px)
+        `;
+        ctx.drawImage(originalImg, -originalImg.width/2, -originalImg.height/2);
+        ctx.restore();
+
+        // Step B: 色溫 Overlay
+        const temp = parseInt(tempSlider.value);
+        if (temp !== 0) {
+            ctx.globalCompositeOperation = 'multiply';
+            ctx.fillStyle = temp > 0 ? `rgba(255, 160, 0, ${temp/400})` : `rgba(0, 160, 255, ${Math.abs(temp)/400})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        // Step C: 卷積
+        if (currentConvolution !== 'none') {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let matrix = currentConvolution === 'sharpen' ? [0,-1,0,-1,5,-1,0,-1,0] : [-2,-1,0,-1,1,1,0,1,2];
+            ctx.putImageData(applyConvolution(imageData, matrix), 0, 0);
+        }
+
+        // Step D: 繪製已確定的浮水印
+        watermarks.forEach(wm => {
+            ctx.save();
+            ctx.globalAlpha = wm.opacity || 0.8;
+            ctx.font = `bold ${wm.size}px Arial`;
+            ctx.fillStyle = wm.color || "white";
+            ctx.shadowColor = "black";
+            ctx.shadowBlur = Math.max(2, wm.size / 10);
+            ctx.fillText(wm.text, wm.x, wm.y);
+            ctx.restore();
+        });
+
+        // Step E: 繪製放置預覽 (當按鈕被按下且鼠標在畫布內)
+        if (isPlacingWatermark && isMouseOnCanvas && watermarkText.value) {
+            ctx.save();
+            ctx.globalAlpha = parseFloat(wmOpacitySlider.value) * 0.5; // 預覽時再更透明一點
+            ctx.font = `bold ${wmSizeSlider.value}px Arial`;
+            ctx.fillStyle = "white";
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+            ctx.fillText(watermarkText.value, mousePos.x, mousePos.y);
+            ctx.strokeText(watermarkText.value, mousePos.x, mousePos.y);
+            ctx.restore();
+        }
+    }
+
+    // 4. 歷史紀錄
+    function saveToHistory() {
+        const state = {
+            rotation, flipH, currentConvolution,
+            grayscale: grayscaleToggle.checked,
+            invert: invertToggle.checked,
+            sepia: sepiaToggle.checked,
+            brightness: brightnessSlider.value,
+            blur: blurSlider.value,
+            temp: tempSlider.value,
+            watermarks: JSON.parse(JSON.stringify(watermarks))
+        };
+        if (history.length > 30) history.shift();
+        history.push(state);
+    }
+
+    undoBtn.addEventListener('click', () => {
+        if (history.length <= 1) return;
+        history.pop();
+        const prevState = history[history.length - 1];
+        
+        rotation = prevState.rotation;
+        flipH = prevState.flipH;
+        currentConvolution = prevState.currentConvolution;
+        grayscaleToggle.checked = prevState.grayscale;
+        invertToggle.checked = prevState.invert;
+        sepiaToggle.checked = prevState.sepia;
+        brightnessSlider.value = prevState.brightness;
+        blurSlider.value = prevState.blur;
+        tempSlider.value = prevState.temp;
+        watermarks = prevState.watermarks;
+
+        radioItems.forEach(i => {
+            i.classList.remove('active');
+            if(i.dataset.mode === currentConvolution) i.classList.add('active');
+        });
+
+        autoResizeCanvas();
+        render();
+    });
+
+    // 5. 浮水印放置與預覽邏輯
+    placeWatermarkBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!isImageLoaded || !watermarkText.value) return;
+        isPlacingWatermark = !isPlacingWatermark;
+        placeWatermarkBtn.innerText = isPlacingWatermark ? "點擊畫布位置..." : "放置";
+        render();
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        if (!isImageLoaded) return;
+        isMouseOnCanvas = true;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        mousePos.x = (e.clientX - rect.left) * scaleX;
+        mousePos.y = (e.clientY - rect.top) * scaleY;
+        
+        if (isPlacingWatermark) {
+            render(); // 即時更新預覽文字位置
+        }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+        isMouseOnCanvas = false;
+        if (isPlacingWatermark) render(); // 清除預覽文字
+    });
+
+    canvas.addEventListener('click', (e) => {
+        if (!isPlacingWatermark) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+
+        watermarks.push({
+            text: watermarkText.value,
+            x: x,
+            y: y,
+            size: parseInt(wmSizeSlider.value),
+            opacity: parseFloat(wmOpacitySlider.value),
+            color: "white"
+        });
+        
+        isPlacingWatermark = false;
+        placeWatermarkBtn.innerText = "放置";
+        render();
+        saveToHistory();
+    });
+
+    // 6. 其他事件
+    wmSizeSlider.addEventListener('input', render);
+    wmOpacitySlider.addEventListener('input', render);
+
+    rotateBtn.addEventListener('click', () => {
+        rotation = (rotation + 90) % 360;
+        autoResizeCanvas();
+        render();
+        saveToHistory();
+    });
+
+    flipBtn.addEventListener('click', () => {
+        flipH *= -1;
+        render();
+        saveToHistory();
+    });
+
+    resetBtn.addEventListener('click', () => {
+        if (!isImageLoaded) return;
+        resetStates();
+        autoResizeCanvas();
+        render();
+        saveToHistory();
+    });
+
+    [brightnessSlider, blurSlider, tempSlider].forEach(el => {
+        el.addEventListener('input', render);
+        el.addEventListener('change', saveToHistory);
+    });
+
+    [grayscaleToggle, invertToggle, sepiaToggle].forEach(el => {
+        el.addEventListener('change', () => { render(); saveToHistory(); });
+    });
+
+    radioItems.forEach(item => {
+        item.addEventListener('click', () => {
+            radioItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            currentConvolution = item.dataset.mode;
+            render();
+            saveToHistory();
+        });
+    });
+
+    downloadBtn.addEventListener('click', () => {
+        if (!isImageLoaded) return;
+        const link = document.createElement('a');
+        link.download = 'AI-Image-Workshop.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    });
+</script>
+
+</body>
+</html>
