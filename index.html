@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>簡約導覽頁面</title>
+    <style>
+        /* 基礎設定 */
+        :root {
+            --bg-color: #f4f7f6;
+            --text-color: #2d3436;
+            --accent-color: #6c5ce7;
+            --btn-bg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 容器設計 */
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        h1 {
+            font-weight: 300;
+            margin-bottom: 2.5rem;
+            letter-spacing: 2px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.8s forwards;
+        }
+
+        /* 按鈕群組 */
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .nav-button {
+            background: var(--btn-bg);
+            color: var(--text-color);
+            border: none;
+            padding: 1.2rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        /* 動效 */
+        .nav-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.15);
+            background-color: var(--accent-color);
+            color: #fff;
+        }
+
+        .nav-button:active {
+            transform: scale(0.98);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* JavaScript 會動態觸發這些延遲 */
+        .fade-in-up {
+            animation: fadeIn 0.8s forwards;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>探索中心</h1>
+        
+        <div class="button-group">
+            <a href="ai_photo.html" class="nav-button" id="btn-ai">AI 相簿庫</a>
+            <a href="youbike.html" class="nav-button" id="btn-bike">YouBike 資訊</a>
+        </div>
+    </div>
+
+    <script>
+        // 等待頁面載入後，依序顯示按鈕增加動態感
+        document.addEventListener('DOMContentLoaded', () => {
+            const buttons = document.querySelectorAll('.nav-button');
+            
+            buttons.forEach((btn, index) => {
+                setTimeout(() => {
+                    btn.classList.add('fade-in-up');
+                }, 200 * (index + 1)); // 每個按鈕間隔 200ms 出現
+            });
+
+            // 簡單的點擊事件檢查（選用）
+            buttons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    console.log(`正在前往: ${this.getAttribute('href')}`);
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
