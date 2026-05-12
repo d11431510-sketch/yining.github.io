@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人門戶頁面</title>
+    <style>
+        /* 定義全局變數，方便修改顏色 */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --primary-color: #2d3436;
+            --accent-color: #0984e3;
+            --text-light: #ffffff;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg-gradient);
+            color: var(--primary-color);
+        }
+
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px); /* 磨砂玻璃效果 */
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+            font-weight: 400;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .nav-button {
+            display: block;
+            padding: 15px 25px;
+            font-size: 1.1rem;
+            text-decoration: none;
+            color: var(--primary-color);
+            background: white;
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 12px;
+            transition: var(--transition);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        /* 懸停效果 */
+        .nav-button:hover {
+            transform: translateY(-3px);
+            background: var(--accent-color);
+            color: var(--text-light);
+            box-shadow: 0 8px 15px rgba(9, 132, 227, 0.2);
+        }
+
+        /* 點擊回饋 */
+        .nav-button:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>探索中心</h1>
+        
+        <div class="btn-group">
+            <a href="ubike.html" class="nav-button">YouBike 資訊</a>
+            <a href="photo.html" class="nav-button">精選相簿庫</a>
+        </div>
+    </div>
+
+    <script>
+        // 加入簡單的進場動畫
+        window.addEventListener('load', () => {
+            const container = document.querySelector('.container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                container.style.transition = 'all 0.8s ease-out';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        });
+
+        // 監聽按鈕點擊，可用於之後擴充分析或特效
+        document.querySelectorAll('.nav-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                console.log('跳轉中至: ' + this.innerText);
+            });
+        });
+    </script>
+</body>
+</html>
